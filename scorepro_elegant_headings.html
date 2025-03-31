@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ScorePro - ATS Resume Tracker (with PDF Parsing)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&display=swap');
+
+    * {
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    }
+
+    body {
+        background: linear-gradient(to right, #fff0f3, #fce4ec);
+        margin: 0;
+        padding: 20px;
+        color: #333;
+    }
+
+    .container {
+        max-width: 750px;
+        margin: auto;
+        padding: 25px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 400;
+        color: #000;
+        text-align: center;
+        color: #d81b60;
+        font-weight: 600;
+    }
+
+    p {
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .button {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background-color: #d81b60;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        text-align: center;
+        margin: 15px 0;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .button:hover {
+        background-color: #c2185b;
+        transform: scale(1.02);
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 15px;
+    }
+
+    .textarea {
+        height: 120px;
+    }
+
+    a {
+        color: #d81b60;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    .small-text {
+        font-size: 0.9em;
+        color: #555;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #F5E6E8;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 700px;
+        margin: auto;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    h1 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 400;
+        color: #000;
+        text-align: center;
+    }
+    .button {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        text-align: center;
+        margin: 10px 0;
+        cursor: pointer;
+    }
+    .input-field {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    .textarea {
+        height: 100px;
+    }
+  </style>
+</head>
+<body onload="showScreen('welcome')">
+
+<div class="container screen" id="welcome" style="display:none;">
+  <h1>Welcome to ScorePro</h1>
+  <p>This tool helps optimize your resume for ATS systems.</p><button class="button" onclick="showScreen('registration')">Get Started</button>
+</div>
+
+<div class="container screen" id="registration" style="display:none;">
+  <h1>Create Your Account</h1>
+  <select id="user-type" class="input-field">
+    <option value="job">Looking for a Job</option>
+    <option value="postgrad">Applying for Postgrad</option>
+  </select>
+  <input type="email" id="email" class="input-field" placeholder="Email Address" required>
+  <input type="password" id="password" class="input-field" placeholder="Password" required>
+  <button class="button" onclick="register()">Create Account</button><button class="button" onclick="showScreen('welcome')">Back</button>
+  <p id="reg-msg" style="color: green;"></p>
+  <div class="small-text" id="plan-info"></div>
+</div>
+
+<div class="container screen" id="upload" style="display:none;" style="display: none;">
+  <h1>Upload Your Resume</h1>
+  <input type="file" id="resume" class="input-field" accept=".pdf" required>
+  <textarea id="jobdesc" class="input-field textarea" placeholder="Enter Job Description" required></textarea>
+  <button class="button" onclick="parseAndEvaluate()">Evaluate</button>
+  <p><strong>Match Score:</strong> <span id="score">[Score]</span></p>
+  <p><strong>Analysis:</strong> <span id="analysis">[Analysis Result]</span></p>
+  <p><strong>Missing Keywords:</strong> <span id="missing">[Missing Skills]</span></p>
+  <p><strong>Skill Resources:</strong> <span id="resources">[Links]</span></p>
+</div>
+
+<div class="container" id="mentorship-section" style="display: none;">
+  <h1>Need Mentorship?</h1>
+  <p>Mentorship is a premium feature. Subscribe to unlock:</p>
+  <p><strong>Phone:</strong> +91 98765 43210</p>
+  <p><strong>Email:</strong> mentor@scorepro.com</p>
+</div>
+
+<div class="container">
+  <h1>What Our Users Say</h1>
+  <p><strong>Ravi M.:</strong> "ScorePro helped me align my resume perfectly with my dream job’s JD!"</p>
+  <p><strong>Megha S.:</strong> "The feedback was accurate and the resources were super helpful!"</p>
+</div>
+
+<div class="container">
+  <h1>Subscribe to Access Mentorship</h1>
+  <p>To unlock mentorship and unlimited resume evaluations, please make a payment:</p>
+  <p><strong>UPI ID:</strong> <code>scorepro@upi</code></p>
+  <p><strong>Plans:</strong></p>
+  <ul>
+    <li>🎓 Postgrad Plan: ₹250/month after 3 free trials</li>
+    <li>💼 Job Seeker Plan: ₹300/month after 2 free trials</li>
+  </ul>
+  <p>After payment, send a screenshot to <strong>support@scorepro.com</strong> to activate mentorship access.</p>
+</div>
+
+<div class="container">
+  <h1>About ScorePro</h1>
+  <p>ScorePro was started by 4 university students who understood the struggle of writing the perfect resume. Our mission is to empower other students by offering easy, accessible, and smart resume optimization tools — built for students, by students.</p>
+</div>
+
+<script>
+  function showScreen(screenId) {
+    const screens = document.querySelectorAll(".screen");
+    screens.forEach(screen => screen.style.display = "none");
+    document.getElementById(screenId).style.display = "block";
+  }
+
+  let registered = false;
+  let trialCount = 0;
+  let maxTrials = 2;
+
+  function register() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const userType = document.getElementById("user-type").value;
+    const msg = document.getElementById("reg-msg");
+    const planInfo = document.getElementById("plan-info");
+
+    if (email === "" || password === "") {
+      msg.style.color = "red";
+      msg.textContent = "Please enter email and password.";
+    } else {
+      registered = true;
+      msg.style.color = "green";
+      msg.textContent = "Registration successful!";
+      showScreen("upload");
+      if (userType === "postgrad") {
+        planInfo.innerHTML = "🎓 You have 3 free trials. Subscription: ₹250/month for more.";
+        maxTrials = 3;
+      } else {
+        planInfo.innerHTML = "💼 You have 2 free trials. Subscription: ₹300/month for more.";
+        maxTrials = 2;
+      }
+    }
+  }
+
+  async function parseAndEvaluate() {
+    if (!registered) {
+      alert("Please register first.");
+      return;
+    }
+
+    if (trialCount >= maxTrials) {
+      alert("You have used all your free trials. Please subscribe to continue.");
+      return;
+    }
+
+    alert("🔥 You’ve used " + trialCount + " of " + maxTrials + " free trials.\n\nUpgrade to premium to unlock:\n\n✔ Unlimited resume evaluations\n✔ Access to skill-building resources\n✔ Exclusive mentorship from industry experts\n\nTo subscribe, pay via UPI and send us proof!");
+
+    const file = document.getElementById("resume").files[0];
+    const jobdesc = document.getElementById("jobdesc").value.toLowerCase().match(/\b[a-z]+\b/g);
+    if (!file || !jobdesc) {
+      alert("Please upload resume and enter job description.");
+      return;
+    }
+
+    const fileReader = new FileReader();
+    fileReader.onload = async function() {
+      const typedarray = new Uint8Array(this.result);
+      const pdf = await pdfjsLib.getDocument(typedarray).promise;
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(' ') + ' ';
+      }
+      analyzeResume(text.toLowerCase(), jobdesc);
+    };
+    fileReader.readAsArrayBuffer(file);
+    trialCount++;
+    if (trialCount === maxTrials) {
+      document.getElementById("mentorship-section").style.display = "block";
+    }
+  }
+
+  function analyzeResume(resumeText, jobKeywords) {
+    let matched = 0;
+    const missing = [];
+
+    jobKeywords.forEach(word => {
+      if (resumeText.includes(word)) {
+        matched++;
+      } else if (!missing.includes(word)) {
+        missing.push(word);
+      }
+    });
+
+    const total = matched + missing.length;
+    const score = total === 0 ? 0 : Math.floor((matched / total) * 100);
+    document.getElementById("score").textContent = score + "%";
+
+    const analysis = score > 70 ? "Great match! Your resume fits well." :
+                     score > 40 ? "Decent match. Consider adding more keywords." :
+                     "Low match. Add more relevant skills from the job description.";
+    document.getElementById("analysis").textContent = analysis;
+    document.getElementById("missing").textContent = missing.join(", ") || "None";
+    const links = missing.slice(0, 5).map(skill =>
+      `<a href="https://www.google.com/search?q=learn+${skill}+online" target="_blank">${skill}</a>`
+    ).join(", ");
+    document.getElementById("resources").innerHTML = links || "No missing skills detected.";
+  }
+</script>
+
+</body>
+</html>
